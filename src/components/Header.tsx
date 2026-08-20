@@ -1,27 +1,32 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ShoppingBag, Heart, Menu, X, Search } from 'lucide-react';
+import { ShoppingBag, Heart, Menu, X, Search, User, LogOut } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
+import { useAuth } from '../context/AuthContext';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { totalItems } = useCart();
   const { totalFavorites } = useFavorites();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const menuRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsMenuOpen(false);
+    setIsUserMenuOpen(false);
   }, [location]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIsMenuOpen(false);
+        setIsUserMenuOpen(false);
         setSearchQuery('');
       }
     };
@@ -35,6 +40,9 @@ const Header = () => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setIsMenuOpen(false);
       }
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -46,8 +54,13 @@ const Header = () => {
     if (searchQuery.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
       setSearchQuery('');
-      setIsSearchFocused(false);
     }
+  };
+
+  const handleLogout = () => {
+    logout();
+    setIsUserMenuOpen(false);
+    navigate('/');
   };
 
   return (
@@ -68,7 +81,7 @@ const Header = () => {
           {/* Logo */}
           <Link
             to="/"
-            className="text-2xl font-display font-bold tracking-widest"
+            className="text-xl sm:text-2xl font-display font-bold tracking-widest"
             aria-label="NORTHLINE home"
           >
             NORTHLINE
@@ -91,10 +104,15 @@ const Header = () => {
             <Link to="/contacts" className="text-sm font-medium hover:text-north-brown transition-colors py-2">
               Контакты
             </Link>
+            {isAdmin && (
+              <Link to="/admin" className="text-sm font-medium text-north-rust hover:text-north-brown transition-colors py-2">
+                Admin
+              </Link>
+            )}
           </nav>
 
           {/* Right icons */}
-          <div className="flex items-center space-x-2 sm:space-x-4">
+          <div className="flex items-center space-x-1 sm:space-x-3">
             <form onSubmit={handleSearch} className="hidden md:block relative" role="search">
               <label htmlFor="desktop-search" className="sr-only">Search products</label>
               <input
@@ -102,10 +120,8 @@ const Header = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => setIsSearchFocused(true)}
-                onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
                 placeholder="Поиск..."
-                className="pl-3 pr-8 py-2 text-sm border border-north-light-gray focus:border-north-black outline-none bg-transparent w-40 lg:w-48"
+                className="pl-3 pr-8 py-2 text-sm border border-north-light-gray focus:border-north-black outline-none bg-transparent w-32 lg:w-48"
               />
               <button
                 type="submit"
@@ -116,6 +132,64 @@ const Header = () => {
               </button>
             </form>
 
+            {/* User menu */}
+            <div className="relative" ref={userMenuRef}>
+              <button
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className="p-2 hover:text-north-brown transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                aria-label={isAuthenticated ? 'User menu' : 'Login'}
+                aria-expanded={isUserMenuOpen}
+              >
+                <User size={22} aria-hidden="true" />
+              </button>
+
+              {isUserMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-48 bg-north-milk border border-north-light-gray shadow-lg z-50">
+                  {isAuthenticated ? (
+                    <div>
+                      <div className="px-4 py-3 border-b border-north-light-gray">
+                        <p className="font-medium text-sm">{user?.name}</p>
+                        <p className="text-xs text-gray-500">{user?.email}</p>
+                      </div>
+                      {isAdmin && (
+                        <Link
+                          to="/admin"
+                          className="block px-4 py-2 text-sm hover:bg-north-light-gray transition-colors"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          Admin Panel
+                        </Link>
+                      )}
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2 text-sm hover:bg-north-light-gray transition-colors flex items-center gap-2"
+                      >
+                        <LogOut size={16} />
+                        Logout
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <Link
+                        to="/login"
+                        className="block px-4 py-2 text-sm hover:bg-north-light-gray transition-colors"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        Login
+                      </Link>
+                      <Link
+                        to="/login"
+                        className="block px-4 py-2 text-sm hover:bg-north-light-gray transition-colors"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        Register
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             <Link
               to="/favorites"
               className="relative p-2 hover:text-north-brown transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
@@ -123,7 +197,7 @@ const Header = () => {
             >
               <Heart size={22} aria-hidden="true" />
               {totalFavorites > 0 && (
-                <span className="absolute -top-1 -right-1 bg-north-brown text-north-milk text-xs w-5 h-5 rounded-full flex items-center justify-center" aria-hidden="true">
+                <span className="absolute -top-1 -right-1 bg-north-rust text-north-milk text-xs w-5 h-5 rounded-full flex items-center justify-center" aria-hidden="true">
                   {totalFavorites}
                 </span>
               )}
@@ -187,6 +261,29 @@ const Header = () => {
                   {link.label}
                 </Link>
               ))}
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  className="text-sm font-medium py-3 px-2 hover:bg-north-light-gray transition-colors rounded text-north-rust"
+                >
+                  Admin Panel
+                </Link>
+              )}
+              {isAuthenticated ? (
+                <button
+                  onClick={handleLogout}
+                  className="text-left text-sm font-medium py-3 px-2 hover:bg-north-light-gray transition-colors rounded"
+                >
+                  Logout ({user?.name})
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  className="text-sm font-medium py-3 px-2 hover:bg-north-light-gray transition-colors rounded"
+                >
+                  Login / Register
+                </Link>
+              )}
             </nav>
           </div>
         )}

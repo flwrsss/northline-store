@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Heart, ShoppingBag } from 'lucide-react';
 import { Product } from '../types';
+import { useFavorites } from '../context/FavoritesContext';
+import { useCart } from '../context/CartContext';
 
 interface ProductCardProps {
   product: Product;
@@ -12,20 +14,25 @@ interface ProductCardProps {
 
 const ProductCard = ({ product, index = 0, onQuickAdd }: ProductCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [currentImage, setCurrentImage] = useState(0);
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const { addToCart } = useCart();
+
+  const isProductFavorite = isFavorite(product.id);
 
   const handleFavorite = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsFavorite(!isFavorite);
+    toggleFavorite(product);
   };
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (onQuickAdd) {
-      onQuickAdd(product);
+
+    // Добавляем товар с первым доступным размером и цветом
+    if (product.sizes.length > 0 && product.colors.length > 0) {
+      addToCart(product, product.sizes[0], product.colors[0]);
     }
   };
 
@@ -70,7 +77,7 @@ const ProductCard = ({ product, index = 0, onQuickAdd }: ProductCardProps) => {
             </span>
           )}
           {product.price < 100 && (
-            <span className="bg-north-brown text-north-milk px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-medium tracking-wider">
+            <span className="bg-north-rust text-north-milk px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-medium tracking-wider">
               SALE
             </span>
           )}
@@ -80,18 +87,18 @@ const ProductCard = ({ product, index = 0, onQuickAdd }: ProductCardProps) => {
         <button
           onClick={handleFavorite}
           className="absolute top-2 sm:top-4 right-2 sm:right-4 p-2 bg-north-milk/80 backdrop-blur-sm hover:bg-north-milk transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
-          aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-          aria-pressed={isFavorite}
+          aria-label={isProductFavorite ? 'Remove from favorites' : 'Add to favorites'}
+          aria-pressed={isProductFavorite}
         >
           <Heart
             size={20}
-            className={isFavorite ? 'fill-north-brown text-north-brown' : 'text-north-black'}
+            className={isProductFavorite ? 'fill-north-rust text-north-rust' : 'text-north-black'}
             aria-hidden="true"
           />
         </button>
 
         {/* Quick add button */}
-        {isHovered && onQuickAdd && (
+        {isHovered && (
           <button
             onClick={handleQuickAdd}
             className="absolute bottom-0 left-0 right-0 bg-north-black text-north-milk py-3 text-sm font-medium tracking-wider uppercase flex items-center justify-center gap-2 hover:bg-north-graphite transition-colors min-h-[44px]"
@@ -128,11 +135,12 @@ const ProductCard = ({ product, index = 0, onQuickAdd }: ProductCardProps) => {
               className="w-4 h-4 sm:w-5 sm:h-5 rounded-full border border-gray-300"
               style={{
                 backgroundColor:
-                  color.toLowerCase() === 'black' ? '#1a1a1a' :
-                  color.toLowerCase() === 'milk' ? '#f5f0eb' :
-                  color.toLowerCase() === 'olive' ? '#4a5d3a' :
-                  color.toLowerCase() === 'graphite' ? '#3d3d3d' :
-                  color.toLowerCase() === 'brown' ? '#8b6f5c' :
+                  color.toLowerCase() === 'black' ? '#111111' :
+                  color.toLowerCase() === 'milk' ? '#F1EEE8' :
+                  color.toLowerCase() === 'olive' ? '#5C624E' :
+                  color.toLowerCase() === 'graphite' ? '#252525' :
+                  color.toLowerCase() === 'brown' ? '#756457' :
+                  color.toLowerCase() === 'rust' ? '#A45132' :
                   color.toLowerCase() === 'white' ? '#ffffff' :
                   color.toLowerCase() === 'indigo' ? '#4b0082' :
                   '#cccccc',

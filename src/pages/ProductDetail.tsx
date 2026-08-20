@@ -10,6 +10,8 @@ import SizeGuideModal from '../components/SizeGuideModal';
 import Lightbox from '../components/Lightbox';
 import Toast from '../components/Toast';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useFavorites } from '../context/FavoritesContext';
+import { useCart } from '../context/CartContext';
 import { Product } from '../types';
 
 const ProductDetail = () => {
@@ -26,9 +28,9 @@ const ProductDetail = () => {
   const [error, setError] = useState('');
   const [toast, setToast] = useState('');
   const [showToast, setShowToast] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
 
-  const [favorites, setFavorites] = useLocalStorage<Product[]>('favorites', []);
+  const { toggleFavorite, isFavorite } = useFavorites();
+  const { addToCart } = useCart();
   const [recentlyViewed, setRecentlyViewed] = useLocalStorage<Product[]>('recentlyViewed', []);
 
   useEffect(() => {
@@ -40,12 +42,6 @@ const ProductDetail = () => {
       });
     }
   }, [product?.id]);
-
-  useEffect(() => {
-    if (product) {
-      setIsFavorite(favorites.some(f => f.id === product.id));
-    }
-  }, [favorites, product?.id]);
 
   if (!product) {
     return (
@@ -87,6 +83,7 @@ const ProductDetail = () => {
     }
 
     setError('');
+    addToCart(product, selectedSize, selectedColor, quantity);
     setToast(`${product.name} added to cart`);
     setShowToast(true);
 
@@ -96,14 +93,8 @@ const ProductDetail = () => {
   };
 
   const handleFavorite = () => {
-    if (isFavorite) {
-      setFavorites(prev => prev.filter(f => f.id !== product.id));
-      setToast('Removed from favorites');
-    } else {
-      setFavorites(prev => [...prev, product]);
-      setToast('Added to favorites');
-    }
-    setIsFavorite(!isFavorite);
+    toggleFavorite(product);
+    setToast(isFavorite(product.id) ? 'Removed from favorites' : 'Added to favorites');
     setShowToast(true);
   };
 
@@ -158,7 +149,7 @@ const ProductDetail = () => {
           <div className="flex items-center gap-2 mb-4">
             <div className="flex">
               {[...Array(5)].map((_, i) => (
-                <Star key={i} size={16} className="fill-north-brown text-north-brown" />
+                <Star key={i} size={16} className="fill-north-rust text-north-rust" />
               ))}
             </div>
             <span className="text-sm text-gray-600">4.8 (24 reviews)</span>
@@ -276,13 +267,13 @@ const ProductDetail = () => {
             <button
               onClick={handleFavorite}
               className={`p-4 border ${
-                isFavorite
-                  ? 'border-north-brown bg-north-brown text-north-milk'
+                isFavorite(product.id)
+                  ? 'border-north-rust bg-north-rust text-north-milk'
                   : 'border-north-light-gray hover:border-north-black'
               } transition-colors`}
               aria-label="Add to favorites"
             >
-              <Heart size={20} className={isFavorite ? 'fill-current' : ''} />
+              <Heart size={20} className={isFavorite(product.id) ? 'fill-current' : ''} />
             </button>
           </div>
 

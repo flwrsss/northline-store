@@ -12,12 +12,10 @@
     @apply font-display;
   }
 
-  /* Focus styles */
   :focus-visible {
     @apply outline-2 outline-north-brown outline-offset-2;
   }
 
-  /* Smooth scrolling */
   html {
     scroll-behavior: smooth;
   }
@@ -35,23 +33,49 @@
   .btn-secondary {
     @apply bg-transparent border border-north-black text-north-black px-6 py-3 text-sm font-medium tracking-wider uppercase hover:bg-north-black hover:text-north-milk transition-colors duration-200 min-h-[44px] inline-flex items-center justify-center;
   }
+
+  /* Technical labels */
+  .tech-label {
+    @apply text-xs tracking-[0.2em] uppercase text-gray-500;
+  }
+
+  /* Editorial headings */
+  .editorial-heading {
+    @apply text-4xl md:text-6xl lg:text-7xl font-display font-bold leading-tight;
+  }
+
+  /* Collection number */
+  .collection-number {
+    @apply text-sm tracking-[0.3em] uppercase text-gray-400;
+  }
+
+  /* Decorative line */
+  .decorative-line {
+    @apply w-16 h-px bg-north-brown;
+  }
 }
 
 @keyframes marquee {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-33.33%);
-  }
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 
 .animate-marquee {
-  animation: marquee 30s linear infinite;
+  animation: marquee 40s linear infinite;
+}
+
+@keyframes slow-zoom {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.1); }
+}
+
+.animate-slow-zoom {
+  animation: slow-zoom 20s ease-in-out infinite alternate;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-marquee {
+  .animate-marquee,
+  .animate-slow-zoom {
     animation: none;
   }
 
@@ -65,26 +89,24 @@
   }
 }
 
-/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f5f0eb;
+  background: #F1EEE8;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #8b6f5c;
+  background: #756457;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3d3d3d;
+  background: #252525;
 }
 
-/* Visually hidden for screen readers */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -97,14 +119,13 @@
   border-width: 0;
 }
 
-/* Skip link */
 .skip-link {
   position: absolute;
   top: -100%;
   left: 50%;
   transform: translateX(-50%);
-  background: #1a1a1a;
-  color: #f5f0eb;
+  background: #111111;
+  color: #F1EEE8;
   padding: 12px 24px;
   z-index: 9999;
   transition: top 0.3s;
